@@ -1,7 +1,7 @@
 .data
     .align 0
 
-    BinNum: .asciiz "1101"
+    BinNum: .asciiz "01"
 
 .text
     .globl main
