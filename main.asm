@@ -2,7 +2,7 @@
     .align 0
 
     BinNum: .asciiz "1001"
-    HexNum: .asciiz "6AAA32BA"
+    HexNum: .asciiz "FFFFFFFF"
     
     HexMsgErroDigitoInvalido: .asciiz "Seu hexadecimal possui um ou mais digito(s) invalido(s).\n"
     BinMsgErroDigitoInvalido: .asciiz "Seu binário possui um ou mais digito(s) invalido(s).\n"
@@ -17,7 +17,6 @@
     .globl Main
 
 Main:
-	# TODO: Quando o numero fica muito grande, a conversão dec to hex para de funcionar. Acho que é algo relacionado a overflow
 	# TODO: Verificar se no binario de entrada so tem 0 e 1 (e nao 3 por exemplo), e mostrar mensagem BinMsgErroDigitoInvalido
 	# TODO: Pedir os valores para o usuario, em vez usar BinNum e HexNum
 	# TODO: Mensagens pedindo pro usuario a entrada dele, e mensagens deixando claro o que a saida representa
@@ -157,15 +156,16 @@ ConverteDecToHex:
 
 	sb $zero, 1($t2)  # insere \0 no fim da string
 
-	li $t3, 16      # t3 é a base (fixo em 16)
 	li $t4, 10      # t4 é fixo em 10
 	
 	decToHexInicioDoLoop:
 		blt  $t2, $t1, decToHexRetornar
 	
-		div  $t0, $t3 # t0 / 16: calcula o resto e o quociente
-		mfhi $t5 	 # resto é movido para $t5
-		mflo $t0 	 # quociente é movido para $t0
+		srl  $t3, $t0, 4 # calcula t3 = t0 / 16
+		sll  $t5, $t3, 4 # t5 é o resto
+		
+		sub  $t5, $t0, $t5
+		move $t0, $t3    # quociente é movido para $t0
 
 		blt	 $t5, $t4, restoMenorQue10 # se $t0 < 16 vai para restoMenorQue10
 	
