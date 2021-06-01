@@ -5,11 +5,11 @@
     HexNum: .asciiz "FFFFFFFF"
     
     HexMsgErroDigitoInvalido: .asciiz "Seu hexadecimal possui um ou mais digito(s) invalido(s).\n"
-    BinMsgErroDigitoInvalido: .asciiz "Seu binário possui um ou mais digito(s) invalido(s).\n"
-    MsgErroOverflow: .asciiz "O número digitado é grande demais (o número deve estar entre 0 e 2^32-1), ou você não digitou nada.\n"
-    MsgResultadoBin: .asciiz "Seu número em binário é:\n"
-    MsgResultadoHex: .asciiz "Seu número em hexadecimal é:\n"
-    MsgResultadoDec: .asciiz "Seu número em decimal é:\n"
+    BinMsgErroDigitoInvalido: .asciiz "Seu binï¿½rio possui um ou mais digito(s) invalido(s).\n"
+    MsgErroOverflow: .asciiz "O nï¿½mero digitado ï¿½ grande demais (o nï¿½mero deve estar entre 0 e 2^32-1), ou vocï¿½ nï¿½o digitou nada.\n"
+    MsgResultadoBin: .asciiz "Seu nï¿½mero em binï¿½rio ï¿½:\n"
+    MsgResultadoHex: .asciiz "Seu nï¿½mero em hexadecimal ï¿½:\n"
+    MsgResultadoDec: .asciiz "Seu nï¿½mero em decimal ï¿½:\n"
     
     QuebraDeLinha: .asciiz "\n"
 
@@ -24,7 +24,7 @@ Main:
 	testeConversaoHexadecimal:
 		# O hexadecimal maximo permitido e FFFFFFFF (2^32-1)
 		
-		la $s0, HexNum      # salva endereço do número em s0
+		la $s0, HexNum      # salva endereï¿½o do nï¿½mero em s0
     	move $a0, $s0       # endereco como parametro
     	jal TamanhoString   # pega o tamanho da string digitada
 
@@ -37,7 +37,7 @@ Main:
     	
     	move $a0, $s0
     	move $a1, $s1
-    	jal ConverteHexToDec  # funcao que converte string binaria em um decimal
+    	jal ConverteHexToDec  # funcao que converte string hexadecimal em um decimal
 
     	move $s2, $v0 # s2 e o resultado em decimal
     	
@@ -78,16 +78,20 @@ Main:
     	jal NovaLinha
 
 	testeConversaoBinario:
-	    la $s0, BinNum      # salva endereço do número em s0
+	    la $s0, BinNum      # salva endereï¿½o do nï¿½mero em s0
     	move $a0, $s0       # endereco como parametro
     	jal TamanhoString   # pega o tamanho da string digitada
 
     	move $s1, $v0       # salva tamanho da string em s1
 
+		move $a0, $s0
+		loadi $a1, 1
+		jal VerificaStringChar	# verifica se string binÃ¡ria Ã© composta apenas por 0 e 1 
+
     	move $a0, $s0
     	move $a1, $s1
     	li $a2, 32
-    	jal VerificaEntrada # função que recebe numero, tamanho da str e tamanho permitido, retornando 1 caso valido e 0 caso nao
+    	jal VerificaEntrada # funï¿½ï¿½o que recebe numero, tamanho da str e tamanho permitido, retornando 1 caso valido e 0 caso nao
 
     	move $a0, $s0
     	move $a1, $s1
@@ -109,7 +113,7 @@ Main:
     	jal NovaLinha
     	
     	
-    	# agora, converte decimal para uma string de um binário
+    	# agora, converte decimal para uma string de um binï¿½rio
     	
     	move $a0, $s2
     	jal ConverteDecToBin # funcao que converte inteiro decimal em string do numero em bin
@@ -156,16 +160,16 @@ ConverteDecToHex:
 
 	sb $zero, 1($t2)  # insere \0 no fim da string
 
-	li $t4, 10      # t4 é fixo em 10
+	li $t4, 10      # t4 ï¿½ fixo em 10
 	
 	decToHexInicioDoLoop:
 		blt  $t2, $t1, decToHexRetornar
 	
 		srl  $t3, $t0, 4 # calcula t3 = t0 / 16
-		sll  $t5, $t3, 4 # t5 é o resto
+		sll  $t5, $t3, 4 # t5 ï¿½ o resto
 		
 		sub  $t5, $t0, $t5
-		move $t0, $t3    # quociente é movido para $t0
+		move $t0, $t3    # quociente ï¿½ movido para $t0
 
 		blt	 $t5, $t4, restoMenorQue10 # se $t0 < 16 vai para restoMenorQue10
 	
@@ -209,18 +213,18 @@ ConverteHexToDec:
 	loopHexToDec: 
 		blt $t0, $t5, fimHexToDec
 		
-		lb $t2, ($t0) # t2 é o char atual na string
+		lb $t2, ($t0) # t2 ï¿½ o char atual na string
 	
 		move $a0, $t2 				   # passa o char atual para a funcao
 		jal HexConverteLetraParaNumero # converte em numero
-		move $t4, $v0 				   # t4 é o char convertido em decimal
+		move $t4, $v0 				   # t4 ï¿½ o char convertido em decimal
 		
 		mul $t4, $t4, $t7 # t4 *= 16^i
 		mul $t7, $t7, $t8 # t7 *= 16
 		
 		add $t6, $t6, $t4 # adiciona ao resultado o t4
 		
-		addi $t0, $t0, -1 # incrementa um no endereço
+		addi $t0, $t0, -1 # incrementa um no endereï¿½o
 		
 		j loopHexToDec
 	fimHexToDec:
@@ -312,7 +316,7 @@ ChecarSeNumeroEstaNaRange:
 #######################
 
 ConverteBinToDec:
-    move $t0, $a0   # endereço da string
+    move $t0, $a0   # endereï¿½o da string
     move $t1, $a1   # tamanho da string
 
     add $t0, $t0, $t1      # posiciona t0 no final da string (bit menos significativo)
@@ -377,7 +381,7 @@ ConverteDecToBin:
 
         bne $t6, $zero, coloca1     # verifica valor do resto
         
-        sb $t5, 0($t1)       # salva '0' na posição atual
+        sb $t5, 0($t1)       # salva '0' na posiï¿½ï¿½o atual
         j decrementaPonteiro
         
         coloca1:
@@ -397,7 +401,6 @@ ConverteDecToBin:
 
 
 
-
 ##############
 # UTILIDADES #
 ##############
@@ -409,7 +412,7 @@ NovaLinha:
     jr $ra
 
 TamanhoString:
-	move $t0, $a0	# copia endereço da string para t0
+	move $t0, $a0	# copia endereï¿½o da string para t0
 	li $t1, 0	# valor inicial do tamanho da string
 	lb $t2, 0($t0)	# primeira letra da string
 	
@@ -424,15 +427,96 @@ TamanhoString:
 	fim:
 		move $v0, $t1
 		jr $ra
-	
 
-# a0 = endereço da string
+
+VerificaStringChar:	
+	move $t0, $a0	# guarda ponteiro da string
+	move $t5, $a1	# parametro que guarda se a verificaÃ§Ã£o Ã© decimal, hexadecimal ou binaria
+					# 0: decimal	1: binaria 
+
+	loadi $t3, '\0'	# critÃ©rio de parada
+
+	loadi $t6, 1
+
+	LoopVerificaChar:
+		loadb $t4, 0($t0)
+
+		beq $t4, $zero, StringValida	# verifica se chegou ao final da string
+
+		loadi $t1, '0'
+		beq $t4, $t1, valorValidoChar	# verifica se t4 Ã© '0'
+
+		loadi $t1, '1'
+		beq $t4, $t1, valorValidoChar	# verifica se t4 Ã© ''1'
+
+		beq $t5, $t6, valorInvalidoChar	# caso a verificaÃ§Ã£o seja binaria, vem ate aqui
+
+		loadi $t1, '2'
+		beq $t4, $t1, valorValidoChar	# verifica se t4 Ã© ''2'
+
+		loadi $t1, '3'
+		beq $t4, $t1, valorValidoChar	# verifica se t4 Ã© ''3'
+
+		loadi $t1, '4'
+		beq $t4, $t1, valorValidoChar	# verifica se t4 Ã© ''4'
+
+		loadi $t1, '5'
+		beq $t4, $t1, valorValidoChar	# verifica se t4 Ã© ''5'
+
+		loadi $t1, '6'
+		beq $t4, $t1, valorValidoChar	# verifica se t4 Ã© ''6'
+
+		loadi $t1, '7'
+		beq $t4, $t1, valorValidoChar	# verifica se t4 Ã© ''7'
+
+		loadi $t1, '8'
+		beq $t4, $t1, valorValidoChar	# verifica se t4 Ã© ''8'
+
+		loadi $t1, '9'
+		beq $t4, $t1, valorValidoChar	# verifica se t4 Ã© ''9'
+
+		beq $t5, $zero, valorInvalidoChar	# caso a verificacao seja decimal, vem ate aqui
+
+		loadi $t1, 'A'
+		beq $t4, $t1, valorValidoChar	# verifica se t4 Ã© ''A'
+
+		loadi $t1, 'B'
+		beq $t4, $t1, valorValidoChar	# verifica se t4 Ã© ''B'
+
+		loadi $t1, 'C'
+		beq $t4, $t1, valorValidoChar	# verifica se t4 Ã© ''C'
+
+		loadi $t1, 'D'
+		beq $t4, $t1, valorValidoChar	# verifica se t4 Ã© ''D'
+
+		loadi $t1, 'E'
+		beq $t4, $t1, valorValidoChar	# verifica se t4 Ã© ''E'
+	
+		loadi $t1, 'F'
+		beq $t4, $t1, valorValidoChar	# verifica se t4 Ã© ''F'
+
+		j valorInvalidoChar	# t4 possui um valor invalido 
+
+
+		valorValidoChar:
+			addi $t0, $t0, 1
+			j LoopVerificaHexDec
+
+		valorInvalidoChar:
+			loadi $v0, 0	# cÃ³digo de retorno para string invÃ¡lida
+			jr $ra
+
+	StringValida:
+		loadi $v0, 1
+		jr $ra
+
+# a0 = endereï¿½o da string
 # a1 = tamanho da string
 # a2 = tamanho maximo permitido da string
 # v0 = 0 se invalido e 1 se valido
 VerificaEntrada:
     li  $t8, '0'
-    move $t0, $a0       # salva endereço da string em t0
+    move $t0, $a0       # salva endereï¿½o da string em t0
     move $t1, $a1       # salva tamanho da string em t1
     move $t2, $a2       # salva tamanho maximo permitido em t2
 
@@ -444,11 +528,11 @@ VerificaEntrada:
     move $t3, $t1       # salva contador de bit mais significativo atual
 
     loopVerificaChar:
-        beq $t3, $t2, fimPermitido   # se o contador for igual a 32, sai do loop 
+        beq $t3, $t2, fimPermitido   # se o contador for igual a t2, sai do loop 
 
         lb  $t4, 0($t0) # salva caractere atual em t4
         
-        bne $t4, $t8, fimNPermitido  # se o caractere não for '0', sai do loop
+        bne $t4, $t8, fimNPermitido  # se o caractere nï¿½o for '0', sai do loop
 
         addi $t3, $t3, -1
         addi $t0, $t0, 1
@@ -459,7 +543,7 @@ VerificaEntrada:
         jr $ra
 
     fimNPermitido:
-        li $v0, 0       # 0 significa valor não permitido
+        li $v0, 0       # 0 significa valor nï¿½o permitido
         
         li $v0, 4
         la $a0, MsgErroOverflow
