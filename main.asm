@@ -85,7 +85,7 @@ Main:
     	move $s1, $v0       # salva tamanho da string em s1
 
 		move $a0, $s0
-		loadi $a1, 1
+		loadi $a1, 0
 		jal VerificaStringChar	# verifica se string binária é composta apenas por 0 e 1 
 
     	move $a0, $s0
@@ -431,12 +431,10 @@ TamanhoString:
 
 VerificaStringChar:	
 	move $t0, $a0	# guarda ponteiro da string
-	move $t5, $a1	# parametro que guarda se a verificação é decimal, hexadecimal ou binaria
-					# 0: decimal	1: binaria 
+	move $t5, $a1	# parametro que guarda se a verificação é decimal ou binaria
+					# 0: binario	1: decimal 
 
 	loadi $t3, '\0'	# critério de parada
-
-	loadi $t6, 1
 
 	LoopVerificaChar:
 		loadb $t4, 0($t0)
@@ -449,7 +447,7 @@ VerificaStringChar:
 		loadi $t1, '1'
 		beq $t4, $t1, valorValidoChar	# verifica se t4 é ''1'
 
-		beq $t5, $t6, valorInvalidoChar	# caso a verificação seja binaria, vem ate aqui
+		beq $t5, $zero, valorInvalidoChar	# caso a verificação seja binaria, vem ate aqui
 
 		loadi $t1, '2'
 		beq $t4, $t1, valorValidoChar	# verifica se t4 é ''2'
@@ -474,26 +472,6 @@ VerificaStringChar:
 
 		loadi $t1, '9'
 		beq $t4, $t1, valorValidoChar	# verifica se t4 é ''9'
-
-		beq $t5, $zero, valorInvalidoChar	# caso a verificacao seja decimal, vem ate aqui
-
-		loadi $t1, 'A'
-		beq $t4, $t1, valorValidoChar	# verifica se t4 é ''A'
-
-		loadi $t1, 'B'
-		beq $t4, $t1, valorValidoChar	# verifica se t4 é ''B'
-
-		loadi $t1, 'C'
-		beq $t4, $t1, valorValidoChar	# verifica se t4 é ''C'
-
-		loadi $t1, 'D'
-		beq $t4, $t1, valorValidoChar	# verifica se t4 é ''D'
-
-		loadi $t1, 'E'
-		beq $t4, $t1, valorValidoChar	# verifica se t4 é ''E'
-	
-		loadi $t1, 'F'
-		beq $t4, $t1, valorValidoChar	# verifica se t4 é ''F'
 
 		j valorInvalidoChar	# t4 possui um valor invalido 
 
