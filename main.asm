@@ -1,53 +1,52 @@
 .data
     .align 0
 
-	MsgInicio: .asciiz "Bem vindo ao conversor de bases!\nDigite a base origem, o valor e a base destino.\n\nPara binário, digite 'B'.\nPara decimal digite 'D'.\nPara hexadecimal digite 'H'.\n"
-	
-	MsgErro_BaseInvalida: .asciiz "\nA base não é válida, o programa será encerrado.\n"
-    MsgErro_ValorInvalido: .asciiz "\nO dígito não é valido, o programa será encerrado.\n"
-    MsgErro_Overflow: .asciiz "O número digitado é grande demais (o número deve estar entre 0 e 2^32-1).\n"
-	
-	HexMsgErroDigitoInvalido: .asciiz "Seu hexadecimal possui um ou mais digito(s) invalido(s).\n"
-    BinMsgErroDigitoInvalido: .asciiz "Seu binário possui um ou mais digito(s) invalido(s).\n"
-	
-    MsgResultadoBin: .asciiz "Seu número em binário é:\n"
-    MsgResultadoHex: .asciiz "Seu número em hexadecimal é:\n"
-    MsgResultadoDec: .asciiz "Seu número em decimal é:\n"
-    
-    QuebraDeLinha:	.asciiz "\n"
+	MsgInicio:	.asciiz "Bem vindo ao conversor de bases!\nDigite a base origem.\n\tPara binario, digite 'B'.\n\tPara decimal digite 'D'.\n\tPara hexadecimal digite 'H'.\n"
+	MsgLeitura:	.asciiz "Digite o valor que sera lido\n"
+	MsgMeio:	.asciiz "Digite a base para a qual deseja converter\n"
 
-    valorEntrada:	.space 33
+	MsgErro_BaseInvalida: .asciiz "\nA base nao eh valida, o programa sera encerrado.\n"
+	MsgErro_ValorInvalido: .asciiz "\nO digito nao eh valido, o programa sera encerrado.\n"
+ 	MsgErro_Overflow: .asciiz "O numero digitado eh grande demais (o numero deve estar entre 0 e 2^32-1).\n"
+
+	MsgResultado_Bin: .asciiz "Seu numero em binario eh:\n"
+	MsgResultado_Hex: .asciiz "Seu numero em hexadecimal eh:\n"
+	MsgResultado_Dec: .asciiz "Seu numero em decimal eh:\n"
+
+	QuebraDeLinha:	.asciiz "\n"
+
+	valorEntrada:	.space 33
 
 	# $s0 -> Base de origem
-	# $s1 -> Endereço do valor lido em string
+	# $s1 -> Endereco do valor lido em string
 	# $s2 -> Tamanho da string
 	# $s3 -> Valor em Decimal
 	# $s4 -> Base de destino
-	# $s5 -> Endereço do valor na base final em string
+	# $s5 -> Endereco do valor na base final em string
 #
 
 .text
 .globl Main
 
 Main:
-	# Salva a string que irá armazenar a entrada do usuário
+	# Salva a string que vai armazenar a entrada do usuario
 	la	$s1, valorEntrada
 
 	# Printa a mensagem inicial
-	li 		$v0, 4
-	la 		$a0, MsgInicio
+	li	$v0, 4
+	la	$a0, MsgInicio
 	syscall
 
-	# Lê e salva a base de origem
+	# Le e salva a base de origem
+	li	$v0, 12
+	syscall
+	move	$s0, $v0
+
+	# Le o '\n' que sobra
 	li 		$v0, 12
 	syscall
-	move 	$s0, $v0
 
-	# Lê o '\n' que sobra
-	li 		$v0, 12
-	syscall
-
-	# Confere se a base de origem é Válida
+	# Confere se a base de origem eh valida
 	li		$t0 'B'
 	beq		$s0, $t0, OrigemBinaria
 	li		$t0 'H'
@@ -58,16 +57,16 @@ Main:
 	j		Erro_BaseInvalida
 #
 Meio:
-	# Lê e salva a base de destino
+	# Le e salva a base de destino
 	li 		$v0, 12
 	syscall
 	move 	$s4, $v0
 
-	# Lê o '\n' que sobra
+	# Le o '\n' que sobra
 	li 		$v0, 12
 	syscall
 
-	# Confere se a base de origem é Válida
+	# Confere se a base de origem eh valida
 	li		$t0 'B'
 	beq		$s4, $t0, DestinoBinario
 	li		$t0 'H'
@@ -83,16 +82,21 @@ Encerrar:
 #
 
 
-#	LER INPUT DO USUÁRIO
+#	LER INPUT DO USUARIO
 
 OrigemBinaria:
+	# Printa a mensagem de valor
+	li	$v0, 4
+	la	$a0, MsgLeitura
+	syscall
+
 	li		$a0, 0		# parâmetro para "confereChar"
-	li		$t0, 33		# numero máximo de caracteres
-	li		$t1, 0		# número atual de caracteres
-	move	$t2, $s1	# ponteiro para a posição atual da string
+	li		$t0, 33		# numero maximo de caracteres
+	li		$t1, 0		# numero atual de caracteres
+	move	$t2, $s1	# ponteiro para a posicao atual da string
 
 	OrigemBinaria_loop:
-		# Lê entrada
+		# Le entrada
 		li 		$v0, 12
 		syscall
 		move	$a1, $v0
@@ -103,7 +107,7 @@ OrigemBinaria:
 		# Se o char for '\n' termina o loop
 		beq		$v0, $zero, OrigemBinaria_loop_fim
 
-		# caso contrário adiciona a string
+		# caso contrario adiciona a string
 		sb		$a1, 0 ($t2)
 		addi	$t2, $t2, 1
 
@@ -122,13 +126,18 @@ OrigemBinaria:
 			jal		ConverteBinToDec
 			move	$s3, $v0
 
-			# retorno para o código
+			# retorno para o codigo
 			j		Meio			
 		#
 	#
 #
 OrigemDecimal:
-	# para o valor de origem em decimal usa-se um método diferente
+	# Printa a mensagem de valor
+	li	$v0, 4
+	la	$a0, MsgLeitura
+	syscall
+
+	# para o valor de origem em decimal usa-se um metodo diferente
 	# vamos apenas ler ele como inteiro e retornar
 	li		$v0, 5
 	syscall
@@ -136,13 +145,18 @@ OrigemDecimal:
 	j		Meio
 #
 OrigemHexadecimal:
-	li		$a0, 2		# parâmetro para "confereChar"
-	li		$t0, 9		# numero máximo de caracteres
-	li		$t1, 0		# número atual de caracteres
-	move	$t2, $s1	# ponteiro para a posição atual da string
+	# Printa a mensagem de valor
+	li	$v0, 4
+	la	$a0, MsgLeitura
+	syscall
+	
+	li		$a0, 2		# parametro para "confereChar"
+	li		$t0, 9		# numero maximo de caracteres
+	li		$t1, 0		# numero atual de caracteres
+	move	$t2, $s1	# ponteiro para a posicao atual da string
 
 	OrigemHexadecimal_loop:
-		# Lê entrada
+		# Le entrada
 		li 		$v0, 12
 		syscall
 		move	$a1, $v0
@@ -157,7 +171,7 @@ OrigemHexadecimal:
 		sb		$a1, 0 ($t2)
 		addi	$t2, $t2, 1
 
-		# condição de parada: i > n
+		# condicao de parada: i > n
 		addi	$t1, $t1, 1
 		bgt		$t0, $t1, OrigemHexadecimal_loop
 		j		Erro_OverFlow
@@ -172,7 +186,7 @@ OrigemHexadecimal:
 			jal		ConverteHexToDec
 			move	$s3, $v0
 
-			# retorno para o código
+			# retorno para o codigo
 			j		Meio	
 		#
 	#
@@ -182,39 +196,55 @@ OrigemHexadecimal:
 #	CONVERTER PARA A BASE DESEJADA
 
 DestinoBinario:
+	# Pega a string do valor em binario
 	move	$a0, $s3
 	jal		ConverteDecToBin
-
 	move	$s5, $v0
 
+	# Imprime o valor
 	li 		$v0, 4
+	la		$a0, MsgResultado_Bin
+	syscall
+
 	move	$a0, $s5
 	syscall
 
+	# finaliza
 	j		Encerrar
 #
 DestinoHexadecimal:
+	# Pega string com valor em Hexadecimal
 	move	$a0, $s3
 	jal		ConverteDecToHex
-
 	move	$s5, $v0
 	
+	# Imprime o valor
 	li 		$v0, 4
+	la		$a0, MsgResultado_Hex
+	syscall
+
 	move	$a0, $s5
 	syscall
 
+	# finaliza
 	j		Encerrar
 #
 DestinoDecimal:
+	# Imprime o valor
+	li 		$v0, 4
+	la		$a0, MsgResultado_Hex
+	syscall
+
 	li		$v0, 1
 	move	$a0, $s3
 	syscall
 
+	# finaliza
 	j	Encerrar
 #
 
 
-#	POSSÍVEIS ERROS
+#	POSSIVEIS ERROS
 
 Erro_ValorInvalido:
 	li $v0, 4
@@ -231,7 +261,7 @@ Erro_OverFlow:
 	j Encerrar
 #
 Erro_BaseInvalida:
-	# Se chegou aqui base é inválida
+	# Se chegou aqui base é invalida
 	li $v0, 4
 	la $a0, MsgErro_BaseInvalida
 	syscall
@@ -241,22 +271,22 @@ Erro_BaseInvalida:
 
 
 
-#	FUNÇÕES AUXILIARES
+#	FUNCOES AUXILIARES
 
 
 #	Confere se o caracter faz parte dos algarismos da base desejada
-	# @param	$a0 ->	| 0: binária
+	# @param	$a0 ->	| 0: binaria
 	#					| 1: decimal
 	#					| 2: hexadecimal
 	# @param	$a1 -> caracter
 	# @return	$v0	->	| 0: fim de string
 	#					| 1: char válido
 ConfereChar:
-	# confere se é fim de string
+	# confere se eh fim de string
 	li		$t3, '\n'
 	beq		$a1, $t3, ConfereChar_fim
 
-	# Binário Decimal e Hexadecimal
+	# Binario Decimal e Hexadecimal
 	li		$t3 '0'
 	beq		$a1, $t3, ConfereChar_valido
 	li		$t3 '1'
@@ -304,7 +334,7 @@ ConfereChar:
 	li		$t3 '\n'
 	beq		$a1, $t3, ConfereChar_valido
 
-	# Confere se é minúsculo e converte pra maiúsculo
+	# Confere se eh minusculo e converte pra maiusculo
 	li		$t3 'a'
 	beq		$a1, $t3, ConfereChar_minusculo
 	li		$t3 'b'
@@ -318,19 +348,19 @@ ConfereChar:
 	li		$t3 'f'
 	beq		$a1, $t3, ConfereChar_minusculo
 
-	# Valor é inválido
+	# Valor eh invalido
 	j		Erro_ValorInvalido
 
 	ConfereChar_minusculo:
 		addi	$a1, $a1, -32
 	#
 	ConfereChar_valido:
-		# Se o char é válido podemos retornar
+		# Se o char eh valido podemos retornar
 		li	$v0, 1
 		jr	$ra
 	#
 	ConfereChar_fim:
-		# Se o char é '\n', a string terminou
+		# Se o char eh '\n', a string terminou
 		li	$v0, 0
 		jr	$ra
 	#
@@ -339,7 +369,7 @@ ConfereChar:
 
 #	Converte um unsigned int 32 bits em uma string hexadecimal
 	# @param	$a0 -> valor decimal
-	# @return	$v0 -> endereço de uma string hexadecimal
+	# @return	$v0 -> endereco de uma string hexadecimal
 ConverteDecToHex:
 	move $t0, $a0   # guarda valor decimal em t0
 
@@ -354,7 +384,7 @@ ConverteDecToHex:
 
 	sb $zero, 1($t2)  # insere \0 no fim da string
 
-	li $t4, 10      # t4 � fixo em 10
+	li $t4, 10      # t4 eh fixo em 10
 	
 	decToHexInicioDoLoop:
 		blt  $t2, $t1, decToHexRetornar
@@ -414,18 +444,18 @@ ConverteHexToDec:
 	loopHexToDec: 
 		blt $t0, $t5, fimHexToDec
 		
-		lb $t2, ($t0) # t2 � o char atual na string
+		lb $t2, ($t0) # t2 eh o char atual na string
 	
 		move $a0, $t2 				   # passa o char atual para a funcao
 		jal HexConverteLetraParaNumero # converte em numero
-		move $t4, $v0 				   # t4 � o char convertido em decimal
+		move $t4, $v0 				   # t4 eh o char convertido em decimal
 		
 		mul $t4, $t4, $t7 # t4 *= 16^i
 		mul $t7, $t7, $t8 # t7 *= 16
 		
 		add $t6, $t6, $t4 # adiciona ao resultado o t4
 		
-		addi $t0, $t0, -1 # incrementa um no endere�o
+		addi $t0, $t0, -1 # incrementa um no endereco
 		
 		j loopHexToDec
 	#
@@ -467,7 +497,7 @@ HexConverteLetraParaNumero:
 	# Se chegamos aqui, o digito e invalido
 	finalizaComErro:
 		li $v0, 4
-		la $a0, HexMsgErroDigitoInvalido # printa msg de erro
+		la $a0, MsgErro_ValorInvalido # printa msg de erro
 		syscall
 
 		li $v0, 10
@@ -519,16 +549,16 @@ ChecarSeNumeroEstaNaRange:
 #
 
 
-# Converte uma string de valor binário em um inteiro
-	# @param	$a0 -> endereço da string
+# Converte uma string de valor binario em um inteiro
+	# @param	$a0 -> endereco da string
 	# @param	$a1 -> tamanho da string
 	# @return	$v0 -> valor decimal
 ConverteBinToDec:
-    move $t0, $a0   # endere�o da string
-    move $t1, $a1   # tamanho da string
+    move $t0, $a0	# endereco da string
+    move $t1, $a1	# tamanho da string
 
-    add $t0, $t0, $t1      # posiciona t0 no final da string (bit menos significativo)
-    addi $t0, $t0, -1 # posiciona t0 no final da string (bit menos significativo)
+    add $t0, $t0, $t1	# posiciona t0 no final da string (bit menos significativo)
+    addi $t0, $t0, -1	# posiciona t0 no final da string (bit menos significativo)
 
 
     move $t8, $zero         # valor do numero em binario
@@ -595,7 +625,7 @@ ConverteDecToBin:
 
         bne $t6, $zero, coloca1     # verifica valor do resto
         
-        sb $t5, 0($t1)       # salva '0' na posi��o atual
+        sb $t5, 0($t1)       # salva '0' na posicao atual
         j decrementaPonteiro
         
         coloca1:
