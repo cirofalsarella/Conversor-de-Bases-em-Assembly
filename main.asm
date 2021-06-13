@@ -1,143 +1,299 @@
 .data
     .align 0
 
-    BinNum: .asciiz "1001"
-    HexNum: .asciiz "FFFFFFFF"
+	msgTeste: .asciiz "aqui\n"
+
+	MsgInicio: .asciiz "Bem vindo ao conversor de bases!\nDigite a base origem, o valor e a base destino.\n\nPara binário, digite 'B'.\nPara decimal digite 'D'.\nPara hexadecimal digite 'H'.\n"
+	MsgBaseInvalida: .asciiz "\nA base digitada não é válida, o programa será encerrado.\n"
+    MsgValorInvalido: .asciiz "\nO valor digitado não é valido, o programa será encerrado.\n"
+	HexMsgErroDigitoInvalido: .asciiz "Seu hexadecimal possui um ou mais digito(s) invalido(s).\n"
+    BinMsgErroDigitoInvalido: .asciiz "Seu binário possui um ou mais digito(s) invalido(s).\n"
+    MsgErroOverflow: .asciiz "O número digitado é grande demais (o número deve estar entre 0 e 2^32-1), ou você não digitou nada.\n"
+    MsgResultadoBin: .asciiz "Seu número em binário é:\n"
+    MsgResultadoHex: .asciiz "Seu número em hexadecimal é:\n"
+    MsgResultadoDec: .asciiz "Seu número em decimal é:\n"
     
-    HexMsgErroDigitoInvalido: .asciiz "Seu hexadecimal possui um ou mais digito(s) invalido(s).\n"
-    BinMsgErroDigitoInvalido: .asciiz "Seu bin�rio possui um ou mais digito(s) invalido(s).\n"
-    MsgErroOverflow: .asciiz "O n�mero digitado � grande demais (o n�mero deve estar entre 0 e 2^32-1), ou voc� n�o digitou nada.\n"
-    MsgResultadoBin: .asciiz "Seu n�mero em bin�rio �:\n"
-    MsgResultadoHex: .asciiz "Seu n�mero em hexadecimal �:\n"
-    MsgResultadoDec: .asciiz "Seu n�mero em decimal �:\n"
-    
-    QuebraDeLinha: .asciiz "\n"
+    QuebraDeLinha:	.asciiz "\n"
+
+    valorEntrada:	.space 33
+
+	# $s0 -> Base de origem
+	# $s1 -> Endereço do valor lido em string
+	# $s2 -> Tamanho da string
+	# $s3 -> Valor Decimal da String
+	# $s4 -> Base de destino
+	# $s5 -> Endereço do valor na base final em string
+#
 
 .text
-    .globl Main
+.globl Main
 
 Main:
-	# TODO: Verificar se no binario de entrada so tem 0 e 1 (e nao 3 por exemplo), e mostrar mensagem BinMsgErroDigitoInvalido
-	# TODO: Pedir os valores para o usuario, em vez usar BinNum e HexNum
-	# TODO: Mensagens pedindo pro usuario a entrada dele, e mensagens deixando claro o que a saida representa
+	jal		Inicio
+	jal		Meio
+#
+fimProg:
+	li $v0, 10
+	syscall     # finaliza programa
+#
 
-	testeConversaoHexadecimal:
-		# O hexadecimal maximo permitido e FFFFFFFF (2^32-1)
-		
-		la $s0, HexNum      # salva endere�o do n�mero em s0
-    	move $a0, $s0       # endereco como parametro
-    	jal TamanhoString   # pega o tamanho da string digitada
+Inicio:
+	# Printa a mensagem inicial
+	li 		$v0, 4
+	la 		$a0, MsgInicio
+	syscall
 
-    	move $s1, $v0       # salva tamanho da string em s1
+	# Lê e salva a base de origem
+	li 		$v0, 12
+	syscall
+	move 	$s0, $v0
 
-    	move $a0, $s0
-    	move $a1, $s1
-    	li $a2, 8
-    	jal VerificaEntrada # função que recebe numero, tamanho da str e tamanho permitido, retornando 1 caso valido e 0 caso nao
-    	
-    	move $a0, $s0
-    	move $a1, $s1
-    	jal ConverteHexToDec  # funcao que converte string hexadecimal em um decimal
-
-    	move $s2, $v0 # s2 e o resultado em decimal
-    	
-    	
-    	# printa o resultado em decimal
-    	
-    	jal NovaLinha
-    	
-		li $v0, 4
-    	la $a0, MsgResultadoDec
-    	syscall
-    	
-    	li $v0, 36
-    	move $a0, $s2
-    	syscall
-    	
-    	jal NovaLinha
- 
- 
- 		# agora, convertemos de decimal para hexadecimal
-    	
-		move $a0, $s2
-    	jal ConverteDecToHex  # funcao que converte decimal em string de hexadecimal
-
-    	move $s3, $v0 # salva string binaria em s3
-    	
-    	# printa o resultado em hexadecimal
-    	jal NovaLinha
-    	
-    	li $v0, 4
-    	la $a0, MsgResultadoHex
-    	syscall
-    	
-    	li $v0, 4
-    	move $a0, $s3
-    	syscall
-    	
-    	jal NovaLinha
-
-	testeConversaoBinario:
-	    la $s0, BinNum      # salva endere�o do n�mero em s0
-    	move $a0, $s0       # endereco como parametro
-    	jal TamanhoString   # pega o tamanho da string digitada
-
-    	move $s1, $v0       # salva tamanho da string em s1
-
-		move $a0, $s0
-		loadi $a1, 0
-		jal VerificaStringChar	# verifica se string binária é composta apenas por 0 e 1 
-
-    	move $a0, $s0
-    	move $a1, $s1
-    	li $a2, 32
-    	jal VerificaEntrada # fun��o que recebe numero, tamanho da str e tamanho permitido, retornando 1 caso valido e 0 caso nao
-
-    	move $a0, $s0
-    	move $a1, $s1
-    	jal ConverteBinToDec  # funcao que converte string binaria em um decimal
-
-    	move $s2, $v0 # s2 e o resultado em decimal
-    	
-    	# printa o resultado em decimal
-    	jal NovaLinha
-    	
-    	li $v0, 4
-    	la $a0, MsgResultadoDec
-    	syscall
-    	
-    	li $v0, 36
-    	move $a0, $s2
-    	syscall
-    	
-    	jal NovaLinha
-    	
-    	
-    	# agora, converte decimal para uma string de um bin�rio
-    	
-    	move $a0, $s2
-    	jal ConverteDecToBin # funcao que converte inteiro decimal em string do numero em bin
-
-    	move $s3, $v0 # salva string binaria em s3
-    	
-    	# Printa o resultado
-    	jal NovaLinha
-    
-    	li $v0, 4
-    	la $a0, MsgResultadoBin
-    	syscall
-    
-    	li $v0, 4
-    	move $a0, $s3
-    	syscall
-    	
-    	jal NovaLinha
-
-	fimProg:
-    	li $v0, 10
-    	syscall     # finaliza programa
+	# Lê o '\n' que sobra
+	li 		$v0, 12
+	syscall
 
 
+	# Salva a string que irá armazenar a entrada do usuário
+	la	$s1, valorEntrada
+
+
+	# Confere se a base de origem é Válida
+	li		$t0 'B'
+	beq		$s0, $t0, OrigemBinaria
+	li		$t0 'H'
+	beq		$s0, $t0, OrigemHexadecimal
+	li		$t0 'D'
+	beq		$s0, $t0, OrigemDecimal
+
+
+	# Se chegou aqui base é inválida
+	li $v0, 4
+	la $a0, MsgBaseInvalida
+	syscall
+
+	j		fimProg
+
+
+	# Ler o valor
+	# Ler o char (base saída)
+#
+Meio:
+	li 		$v0, 4
+	la 		$a0, valorEntrada
+	syscall
+	j fimProg
+
+	# Lê e salva a base de destino
+	li 		$v0, 12
+	syscall
+	move 	$s3, $v0
+
+	# Arrumando os registradores para chamada de função
+	move	$a0, $s0
+	move	$a1, $s1
+
+	# Passar o endereço da string pro registrador certo
+	# Chamar as funções de conversão
+#
+
+
+OrigemBinaria:
+	li		$a0, 0		# parâmetro para "confereChar"
+	li		$t0, 33		# numero máximo de caracteres
+	li		$t1, 0		# número atual de caracteres
+	move	$t2, $s1	# ponteiro para a posição atual da string
+
+	OrigemBinaria_loop:
+		# Lê entrada
+		li 		$v0, 12
+		syscall
+		move	$a1, $v0
+
+		# Confere entrada
+		jal		ConfereChar
+
+		# Se o char for '\n' termina o loop
+		beq		$v0, $zero, OrigemBinaria_loop_fim
+
+		# caso contrário adiciona a string
+		sb		$a1, 0 ($t2)
+		addi	$t2, $t2, 1
+
+		# condição de parada: i > n
+		addi	$t1, $t1, 1
+		bgt		$t0, $t1, OrigemBinaria_loop
+		j		ValorInvalido
+
+		OrigemBinaria_loop_fim:
+			move	$s2, $t1
+			j		Meio			
+		#
+	#
+#
+OrigemDecimal:
+	li		$a0, 1		# parâmetro para "confereChar"
+	li		$t0, 9		# numero máximo de caracteres
+	li		$t1, 0		# número atual de caracteres
+	move	$t2, $s1	# ponteiro para a posição atual da string
+
+	OrigemDecimal_loop:
+		# Lê entrada
+		li 		$v0, 12
+		syscall
+		move	$a1, $v0
+
+		# Confere entrada
+		jal		ConfereChar
+
+		# Se o char for '\n' termina o loop
+		beq		$v0, $zero, OrigemDecimal_loop_fim
+
+		# caso contrário adiciona a string
+		sb		$a1, 0 ($t2)
+		addi	$t2, $t2, 1
+
+		# condição de parada: i > n
+		addi	$t1, $t1, 1
+		bgt		$t0, $t1, OrigemDecimal_loop
+		j		ValorInvalido
+
+		OrigemDecimal_loop_fim:
+			move	$s2, $t1
+			j		Meio			
+		#
+	#
+#
+OrigemHexadecimal:
+	li		$a0, 2		# parâmetro para "confereChar"
+	li		$t0, 9		# numero máximo de caracteres
+	li		$t1, 0		# número atual de caracteres
+	move	$t2, $s1	# ponteiro para a posição atual da string
+
+	OrigemHexadecimal_loop:
+		# Lê entrada
+		li 		$v0, 12
+		syscall
+		move	$a1, $v0
+
+		# Confere entrada
+		jal		ConfereChar
+
+		# Se o char for '\n' termina o loop
+		beq		$v0, $zero, OrigemHexadecimal_loop_fim
+
+		# caso contrário adiciona a string
+		sb		$a1, 0 ($t2)
+		addi	$t2, $t2, 1
+
+		# condição de parada: i > n
+		addi	$t1, $t1, 1
+		bgt		$t0, $t1, OrigemHexadecimal_loop
+		j		ValorInvalido
+
+		OrigemHexadecimal_loop_fim:
+			move	$s2, $t1
+			j		Meio			
+		#
+	#
+#
+
+# @param a0 -> tipo do caracter
+# @param a1 -> caracter
+# @return v0:	0: fim de string
+#				1: char válido
+# Caracter inválido termina a execução do programa
+ConfereChar:
+	# confere se é fim de string
+	li		$t3, '\n'
+	beq		$a1, $t3, ConfereChar_fim
+
+	# Binário Decimal e Hexadecimal
+	li		$t3 '0'
+	beq		$a1, $t3, ConfereChar_valido
+	li		$t3 '1'
+	beq		$a1, $t3, ConfereChar_valido
+
+	# String binária deve ser 0 ou 1
+	li		$t5, 0
+	beq 	$a0, $t5, ValorInvalido
+
+	# Decimal e Hexadecimal
+	li		$t3 '2'
+	beq		$a1, $t3, ConfereChar_valido
+	li		$t3 '3'
+	beq		$a1, $t3, ConfereChar_valido
+	li		$t3 '4'
+	beq		$a1, $t3, ConfereChar_valido
+	li		$t3 '5'
+	beq		$a1, $t3, ConfereChar_valido
+	li		$t3 '6'
+	beq		$a1, $t3, ConfereChar_valido
+	li		$t3 '7'
+	beq		$a1, $t3, ConfereChar_valido
+	li		$t3 '8'
+	beq		$a1, $t3, ConfereChar_valido
+	li		$t3 '9'
+	beq		$a1, $t3, ConfereChar_valido
+
+	# String decimal deve ser de 0 a 9
+	li		$t5, 1
+	beq 	$a0, $t5, ValorInvalido
+	
+	# Hexadecimal
+	li		$t3 'A'
+	beq		$a1, $t3, ConfereChar_valido
+	li		$t3 'B'
+	beq		$a1, $t3, ConfereChar_valido
+	li		$t3 'C'
+	beq		$a1, $t3, ConfereChar_valido
+	li		$t3 'D'
+	beq		$a1, $t3, ConfereChar_valido
+	li		$t3 'E'
+	beq		$a1, $t3, ConfereChar_valido
+	li		$t3 'F'
+	beq		$a1, $t3, ConfereChar_valido
+	li		$t3 '\n'
+	beq		$a1, $t3, ConfereChar_valido
+
+	# Confere se é minúsculo e converte pra maiúsculo
+	li		$t3 'a'
+	beq		$a1, $t3, ConfereChar_minusculo
+	li		$t3 'b'
+	beq		$a1, $t3, ConfereChar_minusculo
+	li		$t3 'c'
+	beq		$a1, $t3, ConfereChar_minusculo
+	li		$t3 'd'
+	beq		$a1, $t3, ConfereChar_minusculo
+	li		$t3 'e'
+	beq		$a1, $t3, ConfereChar_minusculo
+	li		$t3 'f'
+	beq		$a1, $t3, ConfereChar_minusculo
+
+	# Valor é inválido
+	j		ValorInvalido
+
+	ConfereChar_minusculo:
+		addi	$a1, $a1, -32
+	#
+	ConfereChar_valido:
+		# Se o char é válido podemos retornar
+		li	$v0, 1
+		jr	$ra
+	#
+	ConfereChar_fim:
+		# Se o char é '\n', a string terminou
+		li	$v0, 0
+		jr	$ra
+	#
+#
+
+ValorInvalido:
+	li $v0, 4
+	la $a0, MsgValorInvalido
+	syscall
+
+	j fimProg
+#
 
 
 #########################
@@ -174,24 +330,29 @@ ConverteDecToHex:
 		blt	 $t5, $t4, restoMenorQue10 # se $t0 < 16 vai para restoMenorQue10
 	
 		# Se nao, executa restoMaiorOuIgualA10
+	#
 
 	restoMaiorOuIgualA10:
 		addi $t5, $t5, 'A'
 		addi $t5, $t5, -10 # converte decimal em letra
 		j decToHexFimloop
+	#
 
 	restoMenorQue10:
 		addi $t5, $t5, '0' # converte decimal em letra
 		j decToHexFimloop
-	
+	#
+
 	decToHexFimloop:
 		sb   $t5, ($t2)   # guarda a letra resultante no ponteiro atual
 		addi $t2, $t2, -1 # decrementa um no ponteiro da posicao atual na string
 		j decToHexInicioDoLoop
-	
+	#
+
 	decToHexRetornar:
 		move $v0, $t1 # retorna o endereco da string alocada
 		jr 	 $ra
+	#
 
 # a0 = endereço da string
 # a1 = tamanho da string
@@ -227,10 +388,15 @@ ConverteHexToDec:
 		addi $t0, $t0, -1 # incrementa um no endere�o
 		
 		j loopHexToDec
+	#
+	
 	fimHexToDec:
 		move $v0, $t6
 		jr $t3 # retorna
-	
+	#
+#
+
+
 # Converte uma letra hexadecimal no seu valor decimal. Esse funcao usa o t9.
 # a0 = '0' => v0 = 0,
 # a0 = 'A' => v0 = 10
@@ -266,25 +432,29 @@ HexConverteLetraParaNumero:
 
 		li $v0, 10
    		syscall # finaliza programa
-	
+	#
+
 	# Caso valido, faz a conversao
 	letraEntre0e9:
 		subi $a0, $a0, '0'
 		move $v0, $a0
 		jr $t9
-	
+	#
+
 	maisculaValida:
 		subi $a0, $a0, 'A'
 		addi $a0, $a0, 10
 		move $v0, $a0
 		jr $t9
-	
+	#
+
 	minusculaValida:
 		subi $a0, $a0, 'a'
 		addi $a0, $a0, 10
 		move $v0, $a0
 		jr $t9
-
+	#
+#
 
 # Se a1 <= a0 <= a2, vai para a3. Se nao continua a execucao.
 # a0 = numero
@@ -306,7 +476,7 @@ ChecarSeNumeroEstaNaRange:
 	grandeDemais:
 		li $v0, 0
 		jr $ra
-
+#
 
 
 
@@ -344,10 +514,14 @@ ConverteBinToDec:
             mul $t7, $t7, $t5   # multiplica t7 por 2
             addi $t1, $t1, -1   # decrementa contador/tamanho da string
             j loopBinDec
+		#
+	#
 
     fimConverteBinToDec:
         move $v0, $t8
         jr $ra
+	#
+#
 
 # a0 = Valor decimal
 ConverteDecToBin:
@@ -401,131 +575,3 @@ ConverteDecToBin:
 
 
 
-##############
-# UTILIDADES #
-##############
-
-NovaLinha:
-	li $v0, 4
-   	la $a0, QuebraDeLinha
-    syscall
-    jr $ra
-
-TamanhoString:
-	move $t0, $a0	# copia endere�o da string para t0
-	li $t1, 0	# valor inicial do tamanho da string
-	lb $t2, 0($t0)	# primeira letra da string
-	
-	loop:
-		beq $t2, $zero, fim
-	
-		addi $t1, $t1, 1
-		addi $t0, $t0, 1
-		lb $t2, 0($t0)
-		j loop
-	
-	fim:
-		move $v0, $t1
-		jr $ra
-
-
-VerificaStringChar:	
-	move $t0, $a0	# guarda ponteiro da string
-	move $t5, $a1	# parametro que guarda se a verificação é decimal ou binaria
-					# 0: binario	1: decimal 
-
-	loadi $t3, '\0'	# critério de parada
-
-	LoopVerificaChar:
-		loadb $t4, 0($t0)
-
-		beq $t4, $zero, StringValida	# verifica se chegou ao final da string
-
-		loadi $t1, '0'
-		beq $t4, $t1, valorValidoChar	# verifica se t4 é '0'
-
-		loadi $t1, '1'
-		beq $t4, $t1, valorValidoChar	# verifica se t4 é ''1'
-
-		beq $t5, $zero, valorInvalidoChar	# caso a verificação seja binaria, vem ate aqui
-
-		loadi $t1, '2'
-		beq $t4, $t1, valorValidoChar	# verifica se t4 é ''2'
-
-		loadi $t1, '3'
-		beq $t4, $t1, valorValidoChar	# verifica se t4 é ''3'
-
-		loadi $t1, '4'
-		beq $t4, $t1, valorValidoChar	# verifica se t4 é ''4'
-
-		loadi $t1, '5'
-		beq $t4, $t1, valorValidoChar	# verifica se t4 é ''5'
-
-		loadi $t1, '6'
-		beq $t4, $t1, valorValidoChar	# verifica se t4 é ''6'
-
-		loadi $t1, '7'
-		beq $t4, $t1, valorValidoChar	# verifica se t4 é ''7'
-
-		loadi $t1, '8'
-		beq $t4, $t1, valorValidoChar	# verifica se t4 é ''8'
-
-		loadi $t1, '9'
-		beq $t4, $t1, valorValidoChar	# verifica se t4 é ''9'
-
-		j valorInvalidoChar	# t4 possui um valor invalido 
-
-
-		valorValidoChar:
-			addi $t0, $t0, 1
-			j LoopVerificaHexDec
-
-		valorInvalidoChar:
-			loadi $v0, 0	# código de retorno para string inválida
-			jr $ra
-
-	StringValida:
-		loadi $v0, 1
-		jr $ra
-
-# a0 = endere�o da string
-# a1 = tamanho da string
-# a2 = tamanho maximo permitido da string
-# v0 = 0 se invalido e 1 se valido
-VerificaEntrada:
-    li  $t8, '0'
-    move $t0, $a0       # salva endere�o da string em t0
-    move $t1, $a1       # salva tamanho da string em t1
-    move $t2, $a2       # salva tamanho maximo permitido em t2
-
-	ble $t1, $zero, fimNPermitido # caso o tamanho seja <= 0
-    ble $t1, $t2, fimPermitido    # caso o tamanho seja menor ou igual ao valor permitido
-
-    # caso string seja maior que o valor permitido, entra aqui
-
-    move $t3, $t1       # salva contador de bit mais significativo atual
-
-    loopVerificaChar:
-        beq $t3, $t2, fimPermitido   # se o contador for igual a t2, sai do loop 
-
-        lb  $t4, 0($t0) # salva caractere atual em t4
-        
-        bne $t4, $t8, fimNPermitido  # se o caractere n�o for '0', sai do loop
-
-        addi $t3, $t3, -1
-        addi $t0, $t0, 1
-        j loopVerificaChar 
-
-    fimPermitido:
-        li $v0, 1       # 1 significa valor permitido
-        jr $ra
-
-    fimNPermitido:
-        li $v0, 0       # 0 significa valor n�o permitido
-        
-        li $v0, 4
-        la $a0, MsgErroOverflow
-        syscall
-        
-        li $v0, 10
-        syscall
