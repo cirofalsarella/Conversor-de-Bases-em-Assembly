@@ -21,7 +21,7 @@
 	# $s0 -> Base de origem
 	# $s1 -> Endereço do valor lido em string
 	# $s2 -> Tamanho da string
-	# $s3 -> Valor Decimal da String
+	# $s3 -> Valor em Decimal
 	# $s4 -> Base de destino
 	# $s5 -> Endereço do valor na base final em string
 #
@@ -77,12 +77,6 @@ Meio:
 
 	j		Erro_BaseInvalida
 #
-Fim:
-	# Printa a mensagem inicial
-	li 		$v0, 4
-	move	$a0, $s5
-	syscall
-#
 Encerrar:
 	li $v0, 10
 	syscall     # finaliza programa
@@ -134,37 +128,12 @@ OrigemBinaria:
 	#
 #
 OrigemDecimal:
-	li		$a0, 1		# parâmetro para "confereChar"
-	li		$t0, 9		# numero máximo de caracteres
-	li		$t1, 0		# número atual de caracteres
-	move	$t2, $s1	# ponteiro para a posição atual da string
-
-	OrigemDecimal_loop:
-		# Lê entrada
-		li 		$v0, 12
-		syscall
-		move	$a1, $v0
-
-		# Confere entrada
-		jal		ConfereChar
-
-		# Se o char for '\n' termina o loop
-		beq		$v0, $zero, OrigemDecimal_loop_fim
-
-		# caso contrário adiciona a string
-		sb		$a1, 0 ($t2)
-		addi	$t2, $t2, 1
-
-		# condição de parada: i > n
-		addi	$t1, $t1, 1
-		bgt		$t0, $t1, OrigemDecimal_loop
-		j		Erro_OverFlow
-
-		OrigemDecimal_loop_fim:
-			move	$s2, $t1
-			j		Meio			
-		#
-	#
+	# para o valor de origem em decimal usa-se um método diferente
+	# vamos apenas ler ele como inteiro e retornar
+	li		$v0, 5
+	syscall
+	move	$s3, $v0
+	j		Meio
 #
 OrigemHexadecimal:
 	li		$a0, 2		# parâmetro para "confereChar"
@@ -217,16 +186,32 @@ DestinoBinario:
 	jal		ConverteDecToBin
 
 	move	$s5, $v0
-	j		Fim
+
+	li 		$v0, 4
+	move	$a0, $s5
+	syscall
+
+	j		Encerrar
 #
 DestinoHexadecimal:
 	move	$a0, $s3
 	jal		ConverteDecToHex
 
 	move	$s5, $v0
-	j		Fim
+	
+	li 		$v0, 4
+	move	$a0, $s5
+	syscall
+
+	j		Encerrar
 #
 DestinoDecimal:
+	li		$v0, 1
+	move	$a0, $s3
+	syscall
+
+	j	Encerrar
+#
 
 
 #	POSSÍVEIS ERROS
