@@ -57,6 +57,11 @@ Main:
 	j		Erro_BaseInvalida
 #
 Meio:
+	# Menasgem para pessoa digitar base de destino
+	li	$v0, 4
+	la	$a0, MsgMeio
+	syscall
+
 	# Le e salva a base de destino
 	li 		$v0, 12
 	syscall
