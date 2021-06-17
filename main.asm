@@ -237,7 +237,7 @@ DestinoHexadecimal:
 DestinoDecimal:
 	# Imprime o valor
 	li 		$v0, 4
-	la		$a0, MsgResultado_Hex
+	la		$a0, MsgResultado_Dec
 	syscall
 
 	li		$v0, 1
